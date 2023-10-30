@@ -1,0 +1,28 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.technologybrewery.baton</groupId>
+        <artifactId>examples</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <name>Baton::Examples::Configuration</name>
+    <description>Configurations for executing Baton migrations</description>
+
+    <artifactId>example-migration-configuration</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>baton-maven-plugin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.electronwill.night-config</groupId>
+            <artifactId>toml</artifactId>
+            <version>3.6.6</version>
+        </dependency>
+    </dependencies>
+
+</project>

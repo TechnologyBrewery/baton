@@ -1,0 +1,12 @@
+[
+  {
+    "name": "test-toml-migration",
+    "implementation": "org.technologybrewery.baton.toml.TestTomlMigration",
+    "fileSets": [
+      {
+        "includes": ["*.toml"],
+        "excludes": ["poetry.toml"]
+      }
+    ]
+  }
+]
