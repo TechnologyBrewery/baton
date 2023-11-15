@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toml-file-update"
-version = "0.1.0"
+version = "0.2.0.dev"
 description = ""
 authors = ["Ryan Ashcraft <ryan.ashcraft@codifyiq.com>"]
 readme = "README.md"
