@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "#migration",
+  "title": "Migration",
+  "anyOf": [
+    {
+      "$ref": "#/definitions/migration"
+    },
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/migration"
+      }
+    }
+  ],
+  "definitions": {
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "implementation": {
+          "type": "string"
+        },
+        "fileSets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fileSet": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "directory": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "includes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "excludes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "followSymLinks": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "name",
+        "implementation"
+      ]
+    }
+  }
+}

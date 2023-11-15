@@ -1,0 +1,93 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.technologybrewery</groupId>
+        <artifactId>parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <groupId>org.technologybrewery.baton</groupId>
+    <version>0.1.0-SNAPSHOT</version>
+    <artifactId>baton</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Baton::Root</name>
+    <description>
+        Baton pays homage to Burton Baton, a fabulous beer that is a blend of an English-style Old Ale and an imperial
+        IPA.
+        This "two thread" beer brings both source beers together into something arguably better than either beer was
+        individually. Like the beer, this project blends two components to improve an existing codebase with new
+        migrations. The result is more substantive and satisfying. #BringBackBurtonBaton
+    </description>
+    <url>https://github.com/TechnologyBrewery/baton</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>technologybrewery.org</id>
+            <name>TehcnologyBrewery.org Community</name>
+            <organization>TehcnologyBrewery.org</organization>
+            <organizationUrl>https://technologybrewery.org</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:ssh://git@github.com/TechnologyBrewery/baton.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/TechnologyBrewery/baton.git</developerConnection>
+        <url>https://github.com/TechnologyBrewery/baton/</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.technologybrewery.habushu</groupId>
+                <artifactId>habushu-maven-plugin</artifactId>
+                <version>2.8.0</version>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>examples</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>bootstrap</id>
+            <modules>
+                <module>baton-maven-plugin</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>ossrh-release</id>
+            <modules>
+                <module>baton-maven-plugin</module>
+            </modules>
+        </profile>
+    </profiles>
+
+</project>
