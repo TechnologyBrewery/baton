@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toml-file-update"
-version = "0.1.0.dev"
+version = "0.1.0"
 description = ""
 authors = ["Ryan Ashcraft <ryan.ashcraft@codifyiq.com>"]
 readme = "README.md"
@@ -10,6 +10,10 @@ packages = [{include = "toml_file_update", from = "src"}]
 python = "^3.11"
 
 [tool.poetry.group.monorepo.dependencies]
+
+
+[tool.poetry.group.dev.dependencies]
+behave = "^1.2.6"
 
 [tool.poetry.dev-dependencies]
 black = "^23.10.1"
