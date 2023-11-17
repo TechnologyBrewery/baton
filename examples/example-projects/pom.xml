@@ -14,7 +14,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>toml-file-update</module>
+        <module>simple-migration-example</module>
+        <module>ignore-migration-example</module>
     </modules>
 
     <build>

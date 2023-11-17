@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A Maven plugin that allows migration logic to be executed against a Maven module based on a classpath-provided
@@ -61,14 +62,17 @@ public class BatonMojo extends AbstractMojo {
      * if not specified.
      */
     @Parameter
-    private FileSet[] fileSets;
+    protected FileSet[] fileSets;
 
     /**
      * The configurations file name to look for in the classpath (all matches will be used).  Defaults to
      * migrations.json.
      */
     @Parameter(property = "baton.migrationsConfigurationFile", required = false, defaultValue = "migrations.json")
-    private String migrationsFileName;
+    protected String migrationsFileName;
+
+    @Parameter(property = "baton.deactivateMigrations", required = false)
+    protected Set<String> deactivateMigrations;
 
     private final ObjectMapper objectMapper = initializeObjectMapper();
 
@@ -132,21 +136,38 @@ public class BatonMojo extends AbstractMojo {
     BatonExecutionSummary performMigration(Collection<MigrationTarget> targets) {
         BatonExecutionSummary executionSummary = new BatonExecutionSummary();
         for (MigrationTarget target : targets) {
-            try {
-                getLog().debug(String.format("Executing Migration: %s (%s)", target.getName(), target.getImplementation()));
-                Class<Migration> implementationClass = (Class<Migration>) Class.forName(target.getImplementation());
-                Constructor<Migration> constructor = implementationClass.getConstructor();
-                Migration migration = constructor.newInstance();
-                FileSet[] migrationSpecificFileSets = (CollectionUtils.isNotEmpty(target.getFileSets())) ? getFileSetsForTarget(target) : fileSets;
-                MigrationSummary migrationSummary = migration.execute(migrationSpecificFileSets);
-                executionSummary.addMigrationSummary(migrationSummary);
+            if (isActive(target)) {
+                try {
+                    getLog().debug(String.format("Executing Migration: %s (%s)", target.getName(), target.getImplementation()));
+                    Class<Migration> implementationClass = (Class<Migration>) Class.forName(target.getImplementation());
+                    Constructor<Migration> constructor = implementationClass.getConstructor();
+                    Migration migration = constructor.newInstance();
+                    migration.setName(target.getName());
+                    migration.setDescription(target.getDescription());
+                    FileSet[] migrationSpecificFileSets = (CollectionUtils.isNotEmpty(target.getFileSets())) ? getFileSetsForTarget(target) : fileSets;
+                    MigrationSummary migrationSummary = migration.execute(migrationSpecificFileSets);
+                    executionSummary.addMigrationSummary(migrationSummary);
 
-            } catch (Exception e) {
-                throw new BatonException("Could not complete migrations!", e);
+                } catch (Exception e) {
+                    throw new BatonException("Could not complete migrations!", e);
+                }
             }
         }
 
         return executionSummary;
+    }
+
+    protected boolean isActive(MigrationTarget migrationTarget) {
+        boolean isActive = true;
+        if (CollectionUtils.isNotEmpty(deactivateMigrations)) {
+            String name = migrationTarget.getName();
+            if (deactivateMigrations.contains(name)) {
+                isActive = false;
+                getLog().info(String.format("Skipping deactivated migration: %s", name));
+            }
+        }
+
+        return isActive;
     }
 
     /**
@@ -231,6 +252,6 @@ public class BatonMojo extends AbstractMojo {
             localFileSets.add(fileSet);
         }
 
-        return localFileSets.toArray(new FileSet[0]);
+        return (localFileSets.isEmpty()) ?  fileSets: localFileSets.toArray(new FileSet[0]);
     }
 }
