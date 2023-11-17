@@ -51,8 +51,12 @@ public abstract class AbstractMigration implements Migration {
                 File fileToMigrate = new File(fileSet.getDirectory(), file);
                 if (shouldExecuteOnFile(fileToMigrate)) {
                     try {
-                        performMigration(fileToMigrate);
-                        successfulMigrations++;
+                        boolean successful = performMigration(fileToMigrate);
+                        if (successful) {
+                            successfulMigrations++;
+                        } else {
+                            unsuccessfulMigrations++;
+                        }
 
                     } catch (Exception e) {
                         unsuccessfulMigrations++;

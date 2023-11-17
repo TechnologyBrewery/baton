@@ -1,11 +1,19 @@
 [
   {
-    "name": "test-toml-migration",
-    "implementation": "org.technologybrewery.baton.toml.TestTomlMigration",
+    "name": "test-migration-a",
+    "implementation": "org.technologybrewery.baton.LoggingSuccessfulMigration",
     "fileSets": [
       {
-        "includes": ["*.toml"],
-        "excludes": ["poetry.toml"]
+        "includes": ["**/*.txt"]
+      }
+    ]
+  },
+  {
+    "name": "test-migration-b",
+    "implementation": "org.technologybrewery.baton.LoggingUnsuccessfulMigration",
+    "fileSets": [
+      {
+        "includes": ["**/*.java"]
       }
     ]
   }
