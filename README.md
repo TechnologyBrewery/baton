@@ -179,6 +179,29 @@ The configurations file name to look for in the classpath (all matches will be u
 
 Default: `migrations.json`
 
+### backupOriginalMigratedFiles
+Controls if backups of original files prior to migration are saved.
+
+Default: `true`
+
+### backupCustomLocation
+Customizes the location where backups of original files prior to migration are stored  By default, the system temp 
+directory is used.  This will result in the files in that temp location being subjected to your local computer's policy
+for cleaning (often either on reboot or never).  Changing this property to the location of your choosing will allow 
+greater control.
+
+Default: `system temp directory`
+
+### numberOfBackupsToKeep
+The number of backups for original files prior to migration to keep.  Once this number is hit, the backup files will 
+rotate, with the oldest being purged.  
+
+It is worth noting that this controls number of old files kept, not the total number files kept.  For instance, if set 
+to 5, you will have 5 *old* backup files as well as one active backup.  This is based on how the file rotation library 
+works.
+
+Default: `10`
+
 ## Migrations JSON File Configuration
 When specifying your configurations in `migrations.json` or your custom `migrationsConfigurationFile` file name, the 
 following options are available.

@@ -10,6 +10,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.technologybrewery.baton.config.MigrationTarget;
 import org.technologybrewery.commons.json.AbstractValidatedElement;
@@ -37,6 +38,13 @@ import java.util.Set;
  */
 @Mojo(name = "baton-migrate", defaultPhase = LifecyclePhase.VALIDATE, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class BatonMojo extends AbstractMojo {
+
+    /**
+     * Enables access to the runtime properties associated with the project's POM
+     * configuration against which Baton is being executed.
+     */
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    protected MavenProject project;
 
     /**
      * Base directory in which to operate.
@@ -71,8 +79,33 @@ public class BatonMojo extends AbstractMojo {
     @Parameter(property = "baton.migrationsConfigurationFile", required = false, defaultValue = "migrations.json")
     protected String migrationsFileName;
 
+    /**
+     * Allows a list of migration names that should be deactivated.  This provides an opportunity to turn off specific
+     * migrations that don't work as desired or a project just doesn't want in a "last mile" fashion.
+     */
     @Parameter(property = "baton.deactivateMigrations", required = false)
     protected Set<String> deactivateMigrations;
+
+    /**
+     * Allows backup of original files prior to migration to be turned off.
+     */
+    @Parameter(property = "baton.backupOriginalMigratedFiles", required = false, defaultValue = "true")
+    protected boolean backupOriginalMigratedFiles;
+
+    /**
+     * Customizes the location where backup of original files prior to migration is performed.  By default, the system
+     * temp directory is used.
+     */
+    @Parameter(property = "baton.backupCustomLocation", required = false)
+    protected String backupCustomLocation;
+
+    /**
+     * Allows the number of backups for original files prior to migration to be customized.  This will impact the number
+     * of backups, not the total number.  So if set to 5, you will have 5 *prior* backup files as well as one active
+     * backup.  This is based on the file rotation library works.
+     */
+    @Parameter(property = "baton.numberOfBackupsToKeep", required = true, defaultValue = "10")
+    protected int numberOfBackupsToKeep;
 
     private final ObjectMapper objectMapper = initializeObjectMapper();
 
@@ -144,6 +177,10 @@ public class BatonMojo extends AbstractMojo {
                     Migration migration = constructor.newInstance();
                     migration.setName(target.getName());
                     migration.setDescription(target.getDescription());
+                    migration.setMavenProject(project);
+                    migration.setBackupMigratedOriginalFiles(backupOriginalMigratedFiles);
+                    migration.setBackupCustomLocation(backupCustomLocation);
+                    migration.setNumberOfBacksUpsToKeep(numberOfBackupsToKeep);
                     FileSet[] migrationSpecificFileSets = (CollectionUtils.isNotEmpty(target.getFileSets())) ? getFileSetsForTarget(target) : fileSets;
                     MigrationSummary migrationSummary = migration.execute(migrationSpecificFileSets);
                     executionSummary.addMigrationSummary(migrationSummary);
@@ -252,6 +289,6 @@ public class BatonMojo extends AbstractMojo {
             localFileSets.add(fileSet);
         }
 
-        return (localFileSets.isEmpty()) ?  fileSets: localFileSets.toArray(new FileSet[0]);
+        return (localFileSets.isEmpty()) ? fileSets : localFileSets.toArray(new FileSet[0]);
     }
 }

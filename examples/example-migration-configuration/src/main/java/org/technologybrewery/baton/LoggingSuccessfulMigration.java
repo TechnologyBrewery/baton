@@ -16,7 +16,7 @@ public class LoggingSuccessfulMigration extends AbstractMigration {
 
     @Override
     protected boolean performMigration(File file) {
-        logger.info("Performing successful migration `{}` on file `{}`", getName(), file.getAbsoluteFile());
+        logger.info("Performing successful migration `{}` on file `{}`", getName(), file.getPath());
         return true;
     }
 
