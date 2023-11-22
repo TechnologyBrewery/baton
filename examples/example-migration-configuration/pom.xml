@@ -18,11 +18,6 @@
             <artifactId>baton-maven-plugin</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.electronwill.night-config</groupId>
-            <artifactId>toml</artifactId>
-            <version>3.6.6</version>
-        </dependency>
     </dependencies>
 
 </project>
