@@ -1,5 +1,6 @@
 package org.technologybrewery.baton;
 
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 
 import java.util.Set;
@@ -32,5 +33,21 @@ public interface Migration {
     Set<String> getFileNamePatterns();
 
     void setFileNamePatterns(Set<String> fileNamePatterns);
+
+    boolean shouldBackupMigratedOriginalFiles();
+
+    void setBackupMigratedOriginalFiles(boolean active);
+
+    String getBackupCustomLocation();
+
+    void setBackupCustomLocation(String customBackupLocation);
+
+    int getNumberOfBacksUpsToKeep();
+
+    void setNumberOfBacksUpsToKeep(int numberOfBacksUpsToKeep);
+
+    void setMavenProject(MavenProject project);
+
+    MavenProject getMavenProject();
 
 }
