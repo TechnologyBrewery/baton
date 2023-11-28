@@ -20,7 +20,7 @@
                 <artifactId>baton-maven-plugin</artifactId>
                 <configuration>
                     <backupCustomLocation>.baton</backupCustomLocation>
-                    <numberOfBackupsToKeep>2</numberOfBackupsToKeep>
+                    <numberOfBackupsToKeep>1</numberOfBackupsToKeep>
                 </configuration>
             </plugin>
         </plugins>
