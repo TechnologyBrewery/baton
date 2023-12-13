@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.technologybrewery.baton</groupId>
         <artifactId>example-projects</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.0-SNAPSHOT</version>
     </parent>
 
     <name>Baton::Examples::Projects::Simple Migrations</name>
