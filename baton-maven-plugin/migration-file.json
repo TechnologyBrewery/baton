@@ -1,0 +1,47 @@
+[ 
+    {
+        "group": "foo",
+        "migrations": [
+            {
+                "name": "repeatableMigrationExample",
+                "implementation": "org.technologybrewery.baton.NoOpMigration",
+                "fileSets": [
+                    {                     
+                        "includes": ["**/legacy/*.foo"],                     
+                        "excludes": ["original-specification-example.foo"]                   
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "group": "bar",
+        "migrations": [
+            {
+                "name": "repeatableMigrationExample",
+                "implementation": "org.technologybrewery.baton.NoOpMigration",
+                "fileSets": [
+                    {                     
+                        "includes": ["**/legacy/*.foo"],                     
+                        "excludes": ["original-specification-example.foo"]                   
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "group": "foo_bar",
+        "migrations": [
+            {
+                "name": "repeatableMigrationExample",
+                "implementation": "org.technologybrewery.baton.NoOpMigration",
+                "fileSets": [
+                    {                     
+                        "includes": ["**/legacy/*.foo"],                     
+                        "excludes": ["original-specification-example.foo"]                   
+                    }
+                ]
+            }
+        ]
+    }
+]
