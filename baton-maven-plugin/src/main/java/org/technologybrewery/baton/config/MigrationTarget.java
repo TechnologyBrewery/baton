@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.technologybrewery.commons.json.AbstractValidatedElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.List;
  * Holds target information to support migration execution. A target
  * represents the implementation details for each migration.
  */
-public class MigrationTarget extends AbstractValidatedElement {
+public class MigrationTarget {
 
     @JsonIgnore
     private static final Logger logger = LoggerFactory.getLogger(MigrationTarget.class);
@@ -66,11 +65,6 @@ public class MigrationTarget extends AbstractValidatedElement {
     @JsonIgnore
     public void addFileSets(FileSet fileSet) {
         this.fileSets.add(fileSet);
-    }
-
-    @Override
-    public String getSchemaFileName() {
-        return "migration-target-schema.json";
     }
 
 }

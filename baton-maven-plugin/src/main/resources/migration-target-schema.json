@@ -1,19 +1,35 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "#migration",
-  "title": "Migration",
+  "id": "#group",
+  "title": "Group",
   "anyOf": [
     {
-      "$ref": "#/definitions/migration"
+      "$ref": "#/definitions/group"
     },
     {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/migration"
+        "$ref": "#/definitions/group"
       }
     }
   ],
   "definitions": {
+    "group":{
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["group", "migrations"],
+        "properties": {
+            "group": {
+                "type": "string"
+            },
+            "migrations": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/migration"
+                }
+            }
+        }
+    },
     "migration": {
       "type": "object",
       "additionalProperties": false,

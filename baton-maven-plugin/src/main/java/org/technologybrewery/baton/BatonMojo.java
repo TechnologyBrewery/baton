@@ -12,6 +12,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
+import org.technologybrewery.baton.config.GroupTarget;
 import org.technologybrewery.baton.config.MigrationTarget;
 import org.technologybrewery.commons.json.AbstractValidatedElement;
 import org.technologybrewery.commons.json.ValidatedElement;
@@ -26,9 +27,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -109,13 +108,13 @@ public class BatonMojo extends AbstractMojo {
 
     private final ObjectMapper objectMapper = initializeObjectMapper();
 
-    private Map<String, MigrationTarget> migrations = new HashMap<>();
+    private List<GroupTarget> groups = new ArrayList<>();
 
     protected ObjectMapper initializeObjectMapper() {
         ObjectMapper localObjectMapper = new ObjectMapper();
 
         SimpleModule module = new SimpleModule();
-        module.addAbstractTypeMapping(ValidatedElement.class, MigrationTarget.class);
+        module.addAbstractTypeMapping(ValidatedElement.class, GroupTarget.class);
 
         localObjectMapper.registerModule(module);
 
@@ -161,36 +160,39 @@ public class BatonMojo extends AbstractMojo {
 
         defaultFileSets();
 
-        BatonExecutionSummary summary = performMigration(migrations.values());
+        BatonExecutionSummary summary = performMigration(groups);
         getLog().info(summary.getSummary());
 
     }
 
-    BatonExecutionSummary performMigration(Collection<MigrationTarget> targets) {
+    BatonExecutionSummary performMigration(Collection<GroupTarget> groupTargets) {
         BatonExecutionSummary executionSummary = new BatonExecutionSummary();
-        for (MigrationTarget target : targets) {
-            if (isActive(target)) {
-                try {
-                    getLog().debug(String.format("Executing Migration: %s (%s)", target.getName(), target.getImplementation()));
-                    Class<Migration> implementationClass = (Class<Migration>) Class.forName(target.getImplementation());
-                    Constructor<Migration> constructor = implementationClass.getConstructor();
-                    Migration migration = constructor.newInstance();
-                    migration.setName(target.getName());
-                    migration.setDescription(target.getDescription());
-                    migration.setMavenProject(project);
-                    migration.setBackupMigratedOriginalFiles(backupOriginalMigratedFiles);
-                    migration.setBackupCustomLocation(backupCustomLocation);
-                    migration.setNumberOfBacksUpsToKeep(numberOfBackupsToKeep);
-                    FileSet[] migrationSpecificFileSets = (CollectionUtils.isNotEmpty(target.getFileSets())) ? getFileSetsForTarget(target) : fileSets;
-                    MigrationSummary migrationSummary = migration.execute(migrationSpecificFileSets);
-                    executionSummary.addMigrationSummary(migrationSummary);
+        for(GroupTarget groupTarget : groupTargets) {
+            GroupSummary groupSummary = new GroupSummary(groupTarget.getGroup());
+            for (MigrationTarget migrationTarget : groupTarget.getMigrations()) {
+                if (isActive(migrationTarget)) {
+                    try {
+                        getLog().debug(String.format("Executing Migration: %s (%s)", migrationTarget.getName(), migrationTarget.getImplementation()));
+                        Class<Migration> implementationClass = (Class<Migration>) Class.forName(migrationTarget.getImplementation());
+                        Constructor<Migration> constructor = implementationClass.getConstructor();
+                        Migration migration = constructor.newInstance();
+                        migration.setName(migrationTarget.getName());
+                        migration.setDescription(migrationTarget.getDescription());
+                        migration.setMavenProject(project);
+                        migration.setBackupMigratedOriginalFiles(backupOriginalMigratedFiles);
+                        migration.setBackupCustomLocation(backupCustomLocation);
+                        migration.setNumberOfBacksUpsToKeep(numberOfBackupsToKeep);
+                        FileSet[] migrationSpecificFileSets = (CollectionUtils.isNotEmpty(migrationTarget.getFileSets())) ? getFileSetsForTarget(migrationTarget) : fileSets;
+                        MigrationSummary migrationSummary = migration.execute(migrationSpecificFileSets);
+                        groupSummary.addMigrationSummary(migrationSummary);
 
-                } catch (Exception e) {
-                    throw new BatonException("Could not complete migrations!", e);
+                    } catch (Exception e) {
+                        throw new BatonException("Could not complete migrations!", e);
+                    }
                 }
             }
+            executionSummary.addGroupSummary(groupSummary);
         }
-
         return executionSummary;
     }
 
@@ -230,35 +232,15 @@ public class BatonMojo extends AbstractMojo {
                         migrationsStream,
                         tempMigrationsFile.toPath(),
                         StandardCopyOption.REPLACE_EXISTING);
-                migrations = loadMigrationsJson(tempMigrationsFile, migrations);
+                List<GroupTarget> groupTargets = AbstractValidatedElement.readAndValidateJsonList(tempMigrationsFile,objectMapper, GroupTarget.class);
+                groups.addAll(groupTargets);
 
-                getLog().info(String.format("Found %d migrations", migrations.size()));
+                getLog().info(String.format("Found %d migrations", groups.size()));
             } catch (IOException e) {
                 throw new BatonException("Unable to parse " + migrationsFileName, e);
             }
         }
 
-    }
-
-    /**
-     * Loads all {@link MigrationTarget}s contained within the given {@link InputStream}, which is expected to
-     * reference the desired migrations.json file to load.
-     *
-     * @param migrationsFile   {@link File} referencing migrations.json file desired to load.
-     * @param migrationTargets the migration targets already loaded to this point
-     * @return {@link Map} containing all loaded {@link MigrationTarget}s with their corresponding name as the map key.
-     */
-    protected Map<String, MigrationTarget> loadMigrationsJson(File migrationsFile,
-                                                              Map<String, MigrationTarget> migrationTargets) {
-
-        List<MigrationTarget> loadedMigrations = AbstractValidatedElement.readAndValidateJsonList(migrationsFile,
-                objectMapper, MigrationTarget.class);
-
-        for (MigrationTarget migrationTarget : loadedMigrations) {
-            migrationTargets.put(migrationTarget.getName(), migrationTarget);
-        }
-
-        return migrationTargets;
     }
 
     protected FileSet[] getFileSetsForTarget(MigrationTarget target) {

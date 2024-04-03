@@ -56,18 +56,22 @@ The following example configures the migration to only look in the `./src/main/r
 one file, `original-specification-example.foo` alone.
 ```json
 [
-  {
-    "name": "upgrade-foo-extension-files-migration",
-    "implementation": "org.technologybrewery.baton.example.FooToBarMigration",
-    "fileSets": [
-      {
-        "includes": ["**/legacy/*.foo"],
-        "excludes": ["original-specification-example.foo"]
-      }
-    ]
-  }
+    {
+        "group": "group-1",
+        "migrations": [
+            "name": "upgrade-foo-extension-files-migration",
+            "implementation": "org.technologybrewery.baton.example.FooToBarMigration",
+            "fileSets": [
+                {
+                    "includes": ["**/legacy/*.foo"],
+                    "excludes": ["original-specification-example.foo"]
+                }
+            ]
+        ]
+    }
 ]
 ```
+Migration files contain groups of migrations. Each group is executed in its entirety before moving on to the next. Groups are executed in the order in which they appear in the migration file. 
 
 ### Add `baton-maven-plugin` to your Maven build
 The last step is to add `baton-maven-plugin` to your Maven build process just like any other plugin.
@@ -206,7 +210,25 @@ Default: `10`
 When specifying your configurations in `migrations.json` or your custom `migrationsConfigurationFile` file name, the 
 following options are available.
 
-### name
+### Group Configurations
+
+#### group
+The name of the group. Simply used to give a distinctive identifier to a group.
+
+Required? `true`
+
+Default: None
+
+#### migrations
+List of all the migrations in a group. This must be a non-zero list of migrations.
+
+Required? `true`
+
+Default: None
+
+### Migration Configurations
+
+#### name
 The name of the migration to perform.  As of 0.1.0, `name` is not particularly impactful.  However, in subsequent 
 releases it will gain importance as a means to order migration execution (convention-driven in the style of Flyway) as 
 well as inactivate specific migrations.
@@ -215,14 +237,14 @@ Required? `true`
 
 Default: None
 
-### description
+#### description
 The description of the migration.  This is intended to provide context on why the migration is needed.
 
 Required? `false`
 
 Default: None
 
-### implementation
+#### implementation
 The fully qualified Java class name that will perform the migration.  This **MUST** implement the 
 `org.technologybrewery.baton.Migration` interface, however it is recommended that it extend 
 `org.technologybrewery.baton.AbstractMigration` to allow implementations to be more consistent and focus on migration
@@ -232,7 +254,7 @@ Required? `true`
 
 Default: None
 
-### fileSet
+#### fileSet
 A Maven-inspired object that allows specification of common file sets.  **MUST** be added as a list item.
 
 Required? `false`
