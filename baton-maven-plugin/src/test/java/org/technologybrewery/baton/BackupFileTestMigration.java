@@ -23,7 +23,7 @@ public class BackupFileTestMigration extends AbstractMigration {
             backupOriginalFile(testFile);
         }
 
-        return new MigrationSummary(testFilesToMigrate.size(), 0);
+        return new MigrationSummary(this.name, testFilesToMigrate.size(), 0);
     }
 
     @Override

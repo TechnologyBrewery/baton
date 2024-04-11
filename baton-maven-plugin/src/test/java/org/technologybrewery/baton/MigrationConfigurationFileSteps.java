@@ -2,8 +2,8 @@ package org.technologybrewery.baton;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.cucumber.java.After;
-import io.cucumber.java.ParameterType;
+
+import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -30,21 +31,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MigrationConfigurationFileSteps {
 
-    private Map<String, GroupTarget> groupMap = new HashMap<>();
+    private Map<String, GroupTarget> groupMap;
 
-    private Map<String, GroupTarget> groupJsonMap = new HashMap<>();
+    private Map<String, GroupTarget> groupJsonMap;
 
-    private ObjectMapper objectMapper = configureObjectMapper();
-
+    private ObjectMapper objectMapper;
 
     private File groupsFile;
 
     private Exception encounteredException;
 
-    @After("@migrationsConfig")
+    @Before("@migrationsConfig")
     public void cleanUp() {
-        groupMap.clear();
-        groupJsonMap.clear();
+        groupMap = new HashMap<>();
+        groupJsonMap = new HashMap<>();
+        objectMapper = configureObjectMapper();
     }
 
     private ObjectMapper configureObjectMapper() {
@@ -59,38 +60,37 @@ public class MigrationConfigurationFileSteps {
         return objectMapper;
     }
 
-    @Given("a group {string}") 
-    public void a_group_of_migrations_with_group(String group) {
+    @Given("a group {string} with type {string}") 
+    public void a_group_with_type(String group, String type) {
         GroupTarget groupTarget = new GroupTarget();
         groupTarget.setGroup(group);
+        groupTarget.setType(type);
         groupMap.put(group, groupTarget);
     }
 
     @Given("a migration described by {string} and {string} for group {string}")
     public void a_migration_described_by_and(String name, String implementation, String group) throws Exception {
-        assertTrue(groupMap.containsKey(group), String.format("Group %s is not valid", group));
-        GroupTarget groupTarget = groupMap.get(group);
-        MigrationTarget migration = new MigrationTarget();
-        if (StringUtils.isNotBlank(name)) {
-            migration.setName(name);
-        }
+        addMigrationToGroup(name, "description", implementation, "1.0.0", group);
+    }
 
-        if (StringUtils.isNotBlank(implementation)) {
-            migration.setImplementation(implementation);
-        }
-        groupTarget.addMigration(migration);
-        createTestMigrationsJson(groupTarget.getGroup(), groupTarget);
-
+    @Given("a migration described by {string},{string}, and {string} for group {string}")
+    public void a_migration_described_by_version(String name, String impl, String version, String group) throws IOException {
+        addMigrationToGroup(name, "description", impl, version, group);
     }
 
     @Given("a migration with required fields as well as {string} for group {string}")
     public void a_migration_with_required_fields_as_well_as(String description, String group) throws Exception {
-        assertTrue(group.contains(group), String.format("Group %s is not valid", group));
+        addMigrationToGroup("group", description, "impl", "1.0.0", group);
+    }
+
+    private void addMigrationToGroup(String name, String description, String impl, String version, String group) throws IOException {
+        assertTrue(groupMap.containsKey(group), String.format("Group %s is not valid", group));
         GroupTarget groupTarget = groupMap.get(group);
-        MigrationTarget migration = getMinimallyRequiredMigration();
-        if (StringUtils.isNotBlank(description)) {
-            migration.setDescription(description);
-        }
+        MigrationTarget migration = new MigrationTarget();
+        migration.setName(name);
+        migration.setDescription(description);
+        migration.setImplementation(impl);
+        migration.setVersion(version);
         groupTarget.addMigration(migration);
         createTestMigrationsJson(groupTarget.getGroup(), groupTarget);
     }
@@ -144,25 +144,46 @@ public class MigrationConfigurationFileSteps {
         }
     }
 
-    @Then("a valid migration is available as {string} with {string} for group {string}")
-    public void a_valid_migration_is_available_as_with(String expectedName, String expectedImplementation, String group) {
-        checkForUnexpectedException();
-        MigrationTarget foundMigration = retrieveMigrationFromGroup(group);
-        assertEquals(expectedName, foundMigration.getName(), String.format("Unexpected migration name found for group %s!", group));
-        assertEquals(expectedImplementation, foundMigration.getImplementation(), "Unexpected migration implementation found!");
-
+    @Then("a valid migration is available as {string} with {string} for group {string} with type {string}")
+    public void a_valid_migration_is_available_as_with(String expName, String expImpl, String expGroup, String expType) {
+        checkValididation(Optional.of(expName), Optional.empty(), Optional.of(expImpl), Optional.empty(), expGroup, Optional.of(expType));
     }
 
     @Then("a valid migration is available with {string} for group {string}")
-    public void a_valid_migration_is_available_with(String expectedDescription, String group) {
+    public void a_valid_migration_is_available_with(String expDescription, String group) {
+        checkValididation(Optional.empty(), Optional.of(expDescription), Optional.empty(), Optional.empty(), group, Optional.empty());
+    }
+
+    @Then("a valid migration is available as {string},{string}, and {string} for group {string} with type {string}")
+    public void a_valid_migration_is_availiable_with_version(String expName, String expImpl, String expVersion, 
+            String expectedGroup, String expectedType) {
+        checkValididation(Optional.of(expName), Optional.empty(), Optional.of(expImpl), Optional.of(expVersion), expectedGroup, Optional.of(expectedType));
+    }
+
+    private void checkValididation(Optional<String> expNameOpt, Optional<String> expDescOpt, Optional<String> expImplOpt, 
+            Optional<String> expVersionOpt, String expGroup, Optional<String> expTypeOpt) {
         checkForUnexpectedException();
-        MigrationTarget foundMigration = retrieveMigrationFromGroup(group);
-        assertEquals(expectedDescription, foundMigration.getDescription(), "Unexpected migration description found!");
+        MigrationTarget foundMigration = retrieveMigrationFromGroup(expGroup);
+        expNameOpt.ifPresent(name -> {
+            assertEquals(name, foundMigration.getName(), String.format("Unexpected migration name found for group %s!", expGroup));
+        });
+        expDescOpt.ifPresent(description -> {
+            assertEquals(description, foundMigration.getDescription(), "Unexpected description found!");
+        });
+        expImplOpt.ifPresent(impl -> {
+            assertEquals(impl, foundMigration.getImplementation(), "Unexpected migration implementation found!");
+        });
+        expVersionOpt.ifPresent(version -> {
+            assertEquals(version, foundMigration.getVersion(), "Unexpected version found!");
+        });
+        expTypeOpt.ifPresent(type -> {
+            assertEquals(type, retrieveGroup(expGroup).getType(), "Unexpected group type found!");
+        });
     }
 
     @Then("a valid migration is available as {string}, {string}, {string}, {string} for group {string}")
-    public void a_valid_migration_is_available_as(String expectedDirectory, String expectedIncludesAsSingleString,
-                                                  String expectedExcludesAsSingleString, String expectedFollowSymLinksAsString, String group) {
+    public void a_valid_migration_is_available_as(String expDirectory, String expIncludesAsSingleString,
+                                                  String expExcludesAsSingleString, String expFollowSymLinksAsString, String group) {
 
         checkForUnexpectedException();
         MigrationTarget foundMigration = retrieveMigrationFromGroup(group);
@@ -171,12 +192,12 @@ public class MigrationConfigurationFileSteps {
         assertEquals(1, fileSets.size(), "Expected exactly 1 file set!");
         FileSet fileSet = fileSets.iterator().next();
 
-        if (StringUtils.isNotBlank(expectedDirectory)) {
-            assertEquals(expectedDirectory, fileSet.getDirectory(), "Unexpected file set directory found!");
+        if (StringUtils.isNotBlank(expDirectory)) {
+            assertEquals(expDirectory, fileSet.getDirectory(), "Unexpected file set directory found!");
         }
 
-        if (StringUtils.isNotBlank(expectedIncludesAsSingleString)) {
-            List<String> expectedIncludes = splitCommaSeparatedString(expectedIncludesAsSingleString);
+        if (StringUtils.isNotBlank(expIncludesAsSingleString)) {
+            List<String> expectedIncludes = splitCommaSeparatedString(expIncludesAsSingleString);
             List<String> foundIncludes = fileSet.getIncludes();
             assertNotNull(foundIncludes, "No includes found!");
             assertEquals(expectedIncludes.size(), foundIncludes.size(), "Unexpected number of includes found!");
@@ -185,8 +206,8 @@ public class MigrationConfigurationFileSteps {
             }
         }
 
-        if (StringUtils.isNotBlank(expectedExcludesAsSingleString)) {
-            List<String> expectedExcludes = splitCommaSeparatedString(expectedExcludesAsSingleString);
+        if (StringUtils.isNotBlank(expExcludesAsSingleString)) {
+            List<String> expectedExcludes = splitCommaSeparatedString(expExcludesAsSingleString);
             List<String> foundExcludes = fileSet.getExcludes();
             assertNotNull(foundExcludes, "No excludes found!");
             assertEquals(expectedExcludes.size(), foundExcludes.size(), "Unexpected number of excludes found!");
@@ -195,8 +216,8 @@ public class MigrationConfigurationFileSteps {
             }
         }
 
-        if (StringUtils.isNotBlank(expectedFollowSymLinksAsString)) {
-            assertEquals(Boolean.valueOf(expectedFollowSymLinksAsString), fileSet.getFollowSymlinks(), "Unexpected follow symlinks found!");
+        if (StringUtils.isNotBlank(expFollowSymLinksAsString)) {
+            assertEquals(Boolean.valueOf(expFollowSymLinksAsString), fileSet.getFollowSymlinks(), "Unexpected follow symlinks found!");
         }
 
     }
@@ -210,6 +231,10 @@ public class MigrationConfigurationFileSteps {
 
     private void createTestMigrationsJson(String name, GroupTarget group) throws IOException {
         groupsFile = new File(FileUtils.getTempDirectory(), name + "-migrations.json");
+        if(group.getType().equals(BatonMojo.ORDERED)) {
+            // Dont write version to migration file
+            objectMapper.addMixIn(MigrationTarget.class, MigrationTargetMixin.class);
+        }
         objectMapper.writeValue(groupsFile, group);
         assertTrue(groupsFile.exists(), "Group configuration not written to file!");
     }
@@ -221,23 +246,17 @@ public class MigrationConfigurationFileSteps {
     }
 
     private MigrationTarget retrieveMigrationFromGroup(String group) {
-        assertEquals(1, groupJsonMap.size(), "Expected exactly one group to be loaded!");
-        assertTrue(groupJsonMap.containsKey(group), String.format("Could not get group %s in migration.json", group));
-        GroupTarget foundGroup = groupJsonMap.get(group);
-        List<MigrationTarget> migrations = foundGroup.getMigrations();
+        GroupTarget groupTarget = retrieveGroup(group);
+        List<MigrationTarget> migrations = groupTarget.getMigrations();
         assertEquals(1, migrations.size(), String.format("Expected exactly one migration to be loaded in group %s!", group));
         MigrationTarget foundMigration = migrations.iterator().next();
         return foundMigration;
     }
 
-    @ParameterType("[^,]+(?:,[^,]+)+")
-    public List<String> listOfString(String listString) {
-        List<String> finalList = new ArrayList<>();
-        String[] stringArray = listString.split(", ");
-        for (String string : stringArray) {
-            finalList.add(string);
-        }
-        return finalList;
+    private GroupTarget retrieveGroup(String group) {
+        assertEquals(1, groupJsonMap.size(), "Expected exactly one group to be loaded!");
+        assertTrue(groupJsonMap.containsKey(group), String.format("Could not get group %s in migration.json", group));
+        return groupJsonMap.get(group);
     }
 
     protected List<String> splitCommaSeparatedString(String values) {

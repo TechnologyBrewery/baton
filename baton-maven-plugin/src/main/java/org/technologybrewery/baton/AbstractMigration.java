@@ -56,7 +56,7 @@ public abstract class AbstractMigration implements Migration {
     public MigrationSummary execute(FileSet[] fileSets) {
         if (!active) {
             logger.info("Migration {}' is marked inactive - skipping", getName());
-            return new MigrationSummary(0, 0);
+            return new MigrationSummary(this.name, 0, 0);
         }
 
         FileSetManager fileSetManager = new FileSetManager();
@@ -90,7 +90,7 @@ public abstract class AbstractMigration implements Migration {
             }
         }
 
-        return new MigrationSummary(successfulMigrations, unsuccessfulMigrations);
+        return new MigrationSummary(this.name, successfulMigrations, unsuccessfulMigrations);
     }
 
     /**

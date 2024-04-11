@@ -26,9 +26,13 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A Maven plugin that allows migration logic to be executed against a Maven module based on a classpath-provided
@@ -63,6 +67,12 @@ public class BatonMojo extends AbstractMojo {
      */
     @Parameter(property = "baton.testDirectory", required = false)
     protected File testDirectory;
+
+    /**
+     * Used to filter out migrations that are less than the value
+     */
+    @Parameter(property = "baton.minimumVersion", required = false, defaultValue = "0.0.0")
+    protected String minimumVersion;
 
     /**
      * A list of fileSet rules to select files and directories.  Will be defaulted based on project information
@@ -110,6 +120,12 @@ public class BatonMojo extends AbstractMojo {
 
     private List<GroupTarget> groups = new ArrayList<>();
 
+    protected static final String VERSIONED = "versioned";
+    
+    protected static final String ORDERED = "ordered";
+
+    private static final String minVersionPattern = "\\d+\\.\\d+\\.\\d+";
+
     protected ObjectMapper initializeObjectMapper() {
         ObjectMapper localObjectMapper = new ObjectMapper();
 
@@ -156,8 +172,9 @@ public class BatonMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        validateMinimumVersion();
         loadMigrations();
-
+        sortMigrationsInGroups(groups);
         defaultFileSets();
 
         BatonExecutionSummary summary = performMigration(groups);
@@ -165,12 +182,35 @@ public class BatonMojo extends AbstractMojo {
 
     }
 
+    private void validateMinimumVersion() {
+        Pattern pattern = Pattern.compile(minVersionPattern);
+        Matcher matcher = pattern.matcher(this.minimumVersion);
+        if(!matcher.find()) {
+            this.minimumVersion = "0.0.0";
+            getLog().warn(String.format("Invalid format for minimum version %s, " + 
+                    "setting to 0.0.0. Must be of the format [Number].[Number].[Number]", this.minimumVersion));
+        }
+    }
+
+    protected void sortMigrationsInGroups(List<GroupTarget> groupTargets) {
+        for(GroupTarget groupTarget : groupTargets) {
+            if(groupTarget.getType().equals(VERSIONED)) {
+                Collections.sort(groupTarget.getMigrations(), new Comparator<MigrationTarget>() {
+                    @Override
+                    public int compare(MigrationTarget o1, MigrationTarget o2) {
+                        return o1.getVersion().compareTo(o2.getVersion());
+                    }
+                });
+            }
+        }
+    }
+    
     BatonExecutionSummary performMigration(Collection<GroupTarget> groupTargets) {
         BatonExecutionSummary executionSummary = new BatonExecutionSummary();
         for(GroupTarget groupTarget : groupTargets) {
             GroupSummary groupSummary = new GroupSummary(groupTarget.getGroup());
             for (MigrationTarget migrationTarget : groupTarget.getMigrations()) {
-                if (isActive(migrationTarget)) {
+                if (isActive(migrationTarget) && isMinimumVersion(migrationTarget, groupTarget.getType())) {
                     try {
                         getLog().debug(String.format("Executing Migration: %s (%s)", migrationTarget.getName(), migrationTarget.getImplementation()));
                         Class<Migration> implementationClass = (Class<Migration>) Class.forName(migrationTarget.getImplementation());
@@ -209,24 +249,36 @@ public class BatonMojo extends AbstractMojo {
         return isActive;
     }
 
+    protected boolean isMinimumVersion(MigrationTarget migrationTarget, String groupType) {
+        boolean isMinimumVersion = true;
+        if(groupType.equals(VERSIONED)) {
+            isMinimumVersion = migrationTarget.getVersion().compareTo(this.minimumVersion) >= 0;
+        }
+        if(!isMinimumVersion) {
+            getLog().info(String.format("Skipping, migration %s with version %s does not meet minimum version of %s", 
+                migrationTarget.getName(), migrationTarget.getVersion(), this.minimumVersion));
+        }
+        return isMinimumVersion;
+    }
+
     /**
      * Scans the classpath for any migrations.json files and loads all defined {@link MigrationTarget} configurations.
      */
     protected void loadMigrations() {
-        Enumeration<URL> migrationsEnumeration = null;
+        Enumeration<URL> groupsEnumeration = null;
         try {
-            migrationsEnumeration = getClass().getClassLoader().getResources(migrationsFileName);
+            groupsEnumeration = getClass().getClassLoader().getResources(migrationsFileName);
 
         } catch (IOException ioe) {
             throw new BatonException("Unable to find migrations!", ioe);
         }
 
-        URL migrationsResource;
-        while (migrationsEnumeration.hasMoreElements()) {
-            migrationsResource = migrationsEnumeration.nextElement();
-            getLog().info(String.format("Loading migrations from: %s", migrationsResource.toString()));
+        URL groupsResource;
+        while (groupsEnumeration.hasMoreElements()) {
+            groupsResource = groupsEnumeration.nextElement();
+            getLog().info(String.format("Loading migrations from: %s", groupsResource.toString()));
 
-            try (InputStream migrationsStream = migrationsResource.openStream()) {
+            try (InputStream migrationsStream = groupsResource.openStream()) {
                 File tempMigrationsFile = File.createTempFile("migrations", ".json");
                 Files.copy(
                         migrationsStream,

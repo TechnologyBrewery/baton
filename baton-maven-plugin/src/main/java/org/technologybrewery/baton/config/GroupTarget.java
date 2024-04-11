@@ -18,6 +18,9 @@ public class GroupTarget extends AbstractValidatedElement {
     private String group;
 
     @JsonProperty(required = true)
+    private String type;
+
+    @JsonProperty(required = true)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<MigrationTarget> migrations = new ArrayList<>();
 
@@ -29,6 +32,14 @@ public class GroupTarget extends AbstractValidatedElement {
 
     public String getGroup() {
         return this.group;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return this.type;
     }
 
     @JsonIgnore

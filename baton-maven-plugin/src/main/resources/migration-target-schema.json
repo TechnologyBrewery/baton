@@ -1,36 +1,92 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "#group",
-  "title": "Group",
-  "anyOf": [
-    {
-      "$ref": "#/definitions/group"
-    },
-    {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/group"
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Group",
+    "anyOf": [
+      {
+        "$ref": "#/definitions/group_ordered"
+      },
+      {
+        "$ref": "#/definitions/group_versioned"
+      },
+      {
+        "type": "array",
+        "items": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/group_ordered"
+                }, 
+                {
+                    "$ref": "#/definitions/group_versioned"
+                }
+            ]
+        }
       }
-    }
-  ],
-  "definitions": {
-    "group":{
+    ],
+    "definitions": {
+      "group_ordered":{
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["group", "migrations", "type"],
+          "properties": {
+              "group": {
+                  "type": "string"
+              },
+              "type": {
+                  "enum": ["ordered"]
+              },
+              "migrations": {
+                  "type": "array",
+                  "items": {
+                      "$ref": "#/definitions/migration_ordered"
+                  }
+              }
+          }
+      },
+      "migration_ordered": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["group", "migrations"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "implementation": {
+            "type": "string"
+          }, 
+          "fileSets": {
+              "$ref": "#/definitions/fileSets"
+          }
+        },
+        "required": [
+          "name",
+          "implementation"
+        ]
+      }, 
+      "group_versioned":{
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["group", "migrations", "type"],
         "properties": {
             "group": {
                 "type": "string"
             },
+            "type": {
+                "enum": ["versioned"]
+            },
             "migrations": {
                 "type": "array",
                 "items": {
-                    "$ref": "#/definitions/migration"
+                    "$ref": "#/definitions/migration_versioned"
                 }
             }
         }
     },
-    "migration": {
+    "migration_versioned": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -43,10 +99,23 @@
             "null"
           ]
         },
+        "version": {
+            "pattern": "\\d+\\.\\d+\\.\\d+"
+        },
         "implementation": {
           "type": "string"
-        },
+        }, 
         "fileSets": {
+            "$ref": "#/definitions/fileSets"
+        }
+      },
+      "required": [
+        "name",
+        "implementation", 
+        "version"
+      ]
+    }, 
+      "fileSets": {
           "type": "array",
           "items": {
             "type": "object",
@@ -81,19 +150,10 @@
                       ]
                     }
                   }
-                },
-                "required": [
-                  "name"
-                ]
+                }
               }
             }
           }
         }
-      },
-      "required": [
-        "name",
-        "implementation"
-      ]
-    }
+      }
   }
-}

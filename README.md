@@ -71,7 +71,93 @@ one file, `original-specification-example.foo` alone.
     }
 ]
 ```
+
+### Group and Migration Ordering
+
+#### Groups
 Migration files contain groups of migrations. Each group is executed in its entirety before moving on to the next. Groups are executed in the order in which they appear in the migration file. 
+
+Example of ordered groups
+```json
+[ 
+    {
+        "group": "foo",
+        "type": "ordered",
+        "migrations": [
+            {
+                "name": "migration_1"        
+            }
+        ]
+    }, 
+    {
+        "group": "bar",
+        "type": "ordered",
+        "migrations": [
+            {
+                "name": "migration_2"        
+            }
+        ]
+    }
+ ]
+```
+If Baton is executed with this migrations.json, groups would be processed in the order in which they were specified (foo, bar)
+
+#### Migrations
+Migrations within a group can be ordered manually or by version. 
+
+Example of manually ordered migrations
+```json
+[ 
+      {
+         "group": "foo",
+         "type": "ordered",
+         "migrations": [
+            {
+                  "name": "migration_1"        
+            },
+            {
+                  "name": "migration_2" 
+           },
+           {
+                 "name": "migration_3" 
+           },
+           {
+                 "name": "migration_4"
+           }
+        ]
+    }
+ ]
+```
+If Baton is executed with this migration.json, migrations would be processed in the order in which they were specified (migration_1, migration_2, migration_3, migration_4)
+
+Example of version ordered migrations
+```json
+[ 
+      {
+         "group": "bar",
+         "type": "versioned",
+         "migrations": [
+            {
+                  "name": "migration_1", 
+                  "version": "3.0.0"     
+            },
+            {
+                  "name": "migration_2", 
+                  "version": "2.0.0" 
+           },
+           {
+                 "name": "migration_3",
+                 "version": "1.0.0" 
+           },
+           {
+                 "name": "migration_4", 
+                 "version": "5.0.0" 
+           }
+        ]
+    }
+ ]
+```
+If Baton is executed with this migration.json, migrations would be processed by the version number in ascending order (migration_3, migration_2, migration_1, migration_4)
 
 ### Add `baton-maven-plugin` to your Maven build
 The last step is to add `baton-maven-plugin` to your Maven build process just like any other plugin.
@@ -206,6 +292,14 @@ works.
 
 Default: `10`
 
+### minimumVersion
+Used to filter out version ordered migrations. All migrations with versions less 
+than the minimum version will be skipped. 
+
+Default: `0.0.0`
+
+Format: `[Number].[Number].[Number]`
+
 ## Migrations JSON File Configuration
 When specifying your configurations in `migrations.json` or your custom `migrationsConfigurationFile` file name, the 
 following options are available.
@@ -218,6 +312,15 @@ The name of the group. Simply used to give a distinctive identifier to a group.
 Required? `true`
 
 Default: None
+
+#### type
+The migration ordering type. 
+
+Required? `true`
+
+Default: None
+
+Values: `ordered | versioned`
 
 #### migrations
 List of all the migrations in a group. This must be a non-zero list of migrations.
@@ -236,6 +339,15 @@ well as inactivate specific migrations.
 Required? `true`
 
 Default: None
+
+#### version
+The version of the migration
+
+Required? Only if type is set to `versioned` in the parent group configuration
+
+Default: None
+
+Format: `[Number].[Number].[Number]`
 
 #### description
 The description of the migration.  This is intended to provide context on why the migration is needed.

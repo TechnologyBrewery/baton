@@ -1,10 +1,32 @@
 [
   {
     "group": "group-1",
+    "type": "versioned",
     "migrations": [
         {
             "name": "test-migration-a",
+            "version": "2.0.2",
             "implementation": "org.technologybrewery.baton.LoggingSuccessfulMigration",
+            "fileSets": [
+                {
+                    "includes": ["**/*.txt"]
+                }
+            ]
+        }, 
+        {
+            "name": "test-migration-b",
+            "version": "8.0.10",
+            "implementation": "org.technologybrewery.baton.LoggingSuccessfulMigration", 
+            "fileSets": [
+                {
+                    "includes": ["**/*.txt"]
+                }
+            ]
+        }, 
+        {
+            "name": "test-migration-c",
+            "version": "3.1.7",
+            "implementation": "org.technologybrewery.baton.LoggingSuccessfulMigration", 
             "fileSets": [
                 {
                     "includes": ["**/*.txt"]
@@ -15,13 +37,14 @@
   },
   {
     "group": "group-2",
+    "type": "ordered",
     "migrations": [
         {
-            "name": "test-migration-b",
+            "name": "test-migration-d",
             "implementation": "org.technologybrewery.baton.LoggingUnsuccessfulMigration",
             "fileSets": [
               {
-                "includes": ["**/*.java"]
+                "includes": ["**/*.txt"]
               }
             ]
         }
@@ -29,9 +52,10 @@
   }, 
   {
     "group": "group-3",
+    "type": "ordered",
     "migrations": [
         {
-            "name": "test-migration-c",
+            "name": "test-migration-e",
             "implementation": "org.technologybrewery.baton.LoggingSuccessfulMigration",
             "fileSets": [
               {

@@ -28,6 +28,9 @@ public class MigrationTarget {
     private String implementation;
 
     @JsonProperty
+    private String version;
+
+    @JsonProperty
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<FileSet> fileSets = new ArrayList<>();
 
@@ -56,6 +59,14 @@ public class MigrationTarget {
 
     public void setImplementation(String implementation) {
         this.implementation = implementation;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getVersion() {
+        return this.version;
     }
 
     public List<FileSet> getFileSets() {
