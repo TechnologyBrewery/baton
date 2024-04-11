@@ -6,17 +6,10 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.technologybrewery.baton.config.GroupTarget;
 import org.technologybrewery.baton.config.MigrationTarget;
-import org.technologybrewery.commons.json.AbstractValidatedElement;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,23 +27,12 @@ public class BatonMojoTestSteps {
         groupTargets = new ArrayList<>();
     }
 
-    @Given("a migration file")
-    public void a_migration_file(String migrationText) throws IOException {
-        File migrationFile = new File("migration-file.json");
-        migrationFile.createNewFile();
-        BufferedWriter writer = new BufferedWriter(new FileWriter(migrationFile));
-        writer.write(migrationText);
-        writer.close();
-        ObjectMapper objectMapper = batonMojo.initializeObjectMapper();
-        groupTargets = AbstractValidatedElement.readAndValidateJsonList(migrationFile,
-                objectMapper, GroupTarget.class);
-    }
-
-    @Given("groups {word} with migrations")
+    @Given("groups {string} with migrations")
     public void groups_with_migrations(String groups) {
         for(String group : groups.split(",")) {
             GroupTarget groupTarget = new GroupTarget();
             groupTarget.setGroup(group);
+            groupTarget.setType(BatonMojo.ORDERED);
             MigrationTarget migrationTarget = new MigrationTarget();
             migrationTarget.setName(group);
             migrationTarget.setImplementation("org.technologybrewery.baton.NoOpMigration");
@@ -59,11 +41,42 @@ public class BatonMojoTestSteps {
         }
     }
 
-    @Given("a group")
-    public void a_group() {
+    @Given("a group with type {string}")
+    public void a_group_with_type(String type) {
         GroupTarget groupTarget = new GroupTarget();
         groupTarget.setGroup("Group_1");
+        groupTarget.setType(type);
         groupTargets.add(groupTarget);
+    }
+
+    @Given("migrations {string} with implementations")
+    public void migrations_with_implementations(String migrations) {
+        assertEquals(1, groupTargets.size(), "Unexpected number of groups added to test!");
+        GroupTarget groupTarget = groupTargets.get(0);
+        for(String migration : migrations.split(",")) {
+            MigrationTarget migrationTarget = new MigrationTarget();
+            migrationTarget.setName(migration);
+            migrationTarget.setImplementation("org.technologybrewery.baton.NoOpMigration");
+            groupTarget.addMigration(migrationTarget);
+        }
+    }
+
+    @Given("migrations {string} with {string} and implementations")
+    public void migrations_with_versions_and_implementations(String migrations, String versions) {
+        String[] splitMigrations = migrations.split(",");
+        String[] splitVersions = versions.split(",");
+        assertEquals(splitMigrations.length, splitVersions.length, "Migrations length does not equal versions length!");
+        assertEquals(1, groupTargets.size());
+        GroupTarget groupTarget = groupTargets.get(0);
+        for(int i=0;i<splitMigrations.length;i++) {
+            String migration = splitMigrations[i];
+            String version = splitVersions[i];
+            MigrationTarget migrationTarget = new MigrationTarget();
+            migrationTarget.setName(migration);
+            migrationTarget.setImplementation("org.technologybrewery.baton.NoOpMigration");
+            migrationTarget.setVersion(version);
+            groupTarget.addMigration(migrationTarget);
+        }
     }
 
     @Given("a migration target with a name {string} and a implementation")
@@ -82,28 +95,48 @@ public class BatonMojoTestSteps {
         batonMojo.setDeactivateMigrations(migrationsToDeactivate);
     }
 
+    @Given("minimum version {string}")
+    public void minimum_version(String minimumVersion) {
+        batonMojo.minimumVersion = minimumVersion;
+    }
+
     @When("Baton executes")
     public void baton_executes() {
         try {
             batonMojo.sourceDirectory = new File("./src/main/java");
             batonMojo.testDirectory = new File("./src/test/java");
             batonMojo.baseDirectory = new File("./");
+            batonMojo.sortMigrationsInGroups(groupTargets);
             summary = batonMojo.performMigration(groupTargets);
         } catch(BatonException e) {
             mojoException = e;
         }
     }
 
-    @Then("groups are executed in the order they appear") 
-    public void groups_are_executed_in_the_order_they_appear() throws Exception {
-        if(mojoException != null) {
-            throw mojoException;
-        }
+    @Then("groups are executed in the order {string}") 
+    public void groups_are_executed_in_the_order(String groups) throws Exception {
+        checkException();
         List<GroupSummary> groupSummaries = summary.getGroupSummaries();
-        for(int i=0;i<groupSummaries.size();i++) {
-            GroupTarget groupTarget = groupTargets.get(i);
+        String[] splitGroups = groups.split(",");
+        for(int i=0;i<splitGroups.length;i++) {
+            String group = splitGroups[i];
             GroupSummary summary = groupSummaries.get(i);
-            assertTrue(groupTarget.getGroup().equals(summary.getGroupName()));
+            assertEquals(group, summary.getGroupName());
+        }
+    }
+
+    @Then("migrations are executed in the order {string}") 
+    public void migrations_are_executed_in_the_order(String migrations) throws Exception {
+        checkException();
+        List<GroupSummary> groupSummaries = summary.getGroupSummaries();
+        assertEquals(1, groupSummaries.size());
+        GroupSummary groupSummary = groupSummaries.get(0);
+        String[] splitMigrations = migrations.split(",");
+        List<MigrationSummary> migrationSummaries = groupSummary.getMigrationSummaries();
+        for(int i=0;i<splitMigrations.length;i++) {
+            String migration = splitMigrations[i];
+            MigrationSummary migrationSummary = migrationSummaries.get(i);
+            assertEquals(migration, migrationSummary.getName()); 
         }
     }
 
@@ -112,17 +145,21 @@ public class BatonMojoTestSteps {
         validateNumberOfMigrationsPerformed(1);
     }
 
+    @Then("no migration is performed")
+    public void no_migration_is_performed() throws Exception {
+        validateNumberOfMigrationsPerformed(0);
+    }
+
     private void validateNumberOfMigrationsPerformed(int numberOfExpectedMigrations) throws Exception {
-        if(mojoException != null) {
-            throw mojoException;
-        }
+        checkException();
         int numberOfMigrationsExecuted = summary.getNumberOfTargetsExecuted();
         assertEquals(numberOfExpectedMigrations, numberOfMigrationsExecuted, "Unexpected number of migrations performed!");
     }
 
-    @Then("no migration is performed")
-    public void no_migration_is_performed() throws Exception {
-        validateNumberOfMigrationsPerformed(0);
+    private void checkException() throws Exception {
+        if(mojoException != null) {
+            throw mojoException;
+        }
     }
 
 }

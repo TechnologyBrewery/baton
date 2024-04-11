@@ -5,11 +5,14 @@ package org.technologybrewery.baton;
  */
 public class MigrationSummary {
 
-    private int filesSuccessfullyMigrated;
+    private final String name;
 
-    private int filesUnsuccessfullyMigrated;
+    private final int filesSuccessfullyMigrated;
 
-    public MigrationSummary(int filesSuccessfullyMigrated, int fileUnsuccessfullyMigrated) {
+    private final int filesUnsuccessfullyMigrated;
+
+    public MigrationSummary(String name, int filesSuccessfullyMigrated, int fileUnsuccessfullyMigrated) {
+        this.name = name;
         this.filesSuccessfullyMigrated = filesSuccessfullyMigrated;
         this.filesUnsuccessfullyMigrated = fileUnsuccessfullyMigrated;
     }
@@ -20,5 +23,9 @@ public class MigrationSummary {
 
     public int getFilesUnsuccessfullyMigrated() {
         return filesUnsuccessfullyMigrated;
+    }
+
+    public String getName() {
+        return this.name;
     }
 }

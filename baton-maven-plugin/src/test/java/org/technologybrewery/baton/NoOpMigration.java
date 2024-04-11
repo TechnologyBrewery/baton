@@ -10,7 +10,7 @@ import java.io.File;
 public class NoOpMigration extends AbstractMigration {
 
     public MigrationSummary execute(FileSet[] fileSets) {
-        return new MigrationSummary(0, 0);
+        return new MigrationSummary(this.name, 0, 0);
     }
 
     @Override
