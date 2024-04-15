@@ -41,12 +41,11 @@
     </developers>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com/TechnologyBrewery/baton.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/TechnologyBrewery/baton.git</developerConnection>
+        <connection>scm:git:https://github.com/TechnologyBrewery/baton.git</connection>
+        <developerConnection>scm:git:https://github.com/TechnologyBrewery/baton.git</developerConnection>
         <url>https://github.com/TechnologyBrewery/baton/</url>
         <tag>HEAD</tag>
     </scm>
-
     <properties>
     </properties>
 
