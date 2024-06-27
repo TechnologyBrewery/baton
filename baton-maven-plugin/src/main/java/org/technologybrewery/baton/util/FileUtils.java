@@ -97,7 +97,7 @@ public final class FileUtils {
     }
 
     /**
-     * Function to read in the {@link File} object and return a {@link List} of the contents.
+     * Reads in the {@link File} object and returns a {@link List} of the contents.
      * @param file {@link File} to read
      * @return {@link List} of the contents
      * @throws IOException
@@ -107,7 +107,7 @@ public final class FileUtils {
     }
 
     /**
-     * Function to write a {@link List} of the contents to the {@link File} object.
+     * Writes a {@link List} of the contents to the {@link File} object.
      * @param file {@link File} to write
      * @param contents {@link List} of the contents
      * @throws IOException
