@@ -64,5 +64,20 @@
             ]
         }
     ]
+  },
+  {
+    "group": "group-4",
+    "type": "ordered",
+    "migrations": [
+      {
+        "name": "test-migration-f",
+        "implementation": "org.technologybrewery.baton.ReplaceRegexMatchUsingUtilsMigration",
+        "fileSets": [
+          {
+            "includes": ["**/*.java"]
+          }
+        ]
+      }
+    ]
   }
 ]
