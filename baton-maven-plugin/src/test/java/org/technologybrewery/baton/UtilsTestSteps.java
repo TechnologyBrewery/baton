@@ -20,8 +20,7 @@ public class UtilsTestSteps {
     private static final String DEFAULT_TEST_FILE_NAME = "text_file.txt";
     File testFile;
     Boolean match;
-
-    protected String inputAsString;
+    String inputAsString;
     List<String> captureGroups;
 
     @Given("I have a string containing {string}")
