@@ -17,6 +17,7 @@
         <module>simple-migration-example</module>
         <module>ignore-migration-example</module>
         <module>custom-backup-location-example</module>
+        <module>file-change-with-utils-example</module>
     </modules>
 
     <build>
