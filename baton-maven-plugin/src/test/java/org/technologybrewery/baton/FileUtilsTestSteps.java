@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-public class UtilsTestSteps {
+public class FileUtilsTestSteps {
 
-    private static final File DEFAULT_TEST_DIRECTORY = new File("target/utils-test/");
+    private static final File DEFAULT_TEST_DIRECTORY = new File("target/file-utils-test/");
     private static final String DEFAULT_TEST_FILE_NAME = "text_file.txt";
     File testFile;
     Boolean match;
@@ -78,12 +78,10 @@ public class UtilsTestSteps {
     @When("I use the regex {string} to search for matches in a file")
     public void i_use_the_regex_to_search_for_matches_in_a_file(String regex) throws IOException {
         match = FileUtils.hasRegExMatch(regex, testFile);
-
     }
 
     @Then("the match result should be \"{booleanValue}\"")
     public void the_match_result_should_be(Boolean expected) {
         assertEquals(expected, match, "RegEx file matcher did not return expected result");
-
     }
 }

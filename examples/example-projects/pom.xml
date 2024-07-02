@@ -18,6 +18,7 @@
         <module>ignore-migration-example</module>
         <module>custom-backup-location-example</module>
         <module>file-change-with-utils-example</module>
+        <module>pom-version-update-with-utils-example</module>
     </modules>
 
     <build>
