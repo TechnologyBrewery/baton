@@ -79,5 +79,21 @@
         ]
       }
     ]
+  },
+  {
+    "group": "group-5",
+    "type": "ordered",
+    "migrations": [
+      {
+        "name": "test-migration-g",
+        "implementation": "org.technologybrewery.baton.UpdatePomVersionUsingUtilsMigration",
+        "fileSets": [
+          {
+            "directory": "./examples/example-projects/pom-version-update-with-utils-example/src/test/resources",
+            "includes": ["test-pom.xml"]
+          }
+        ]
+      }
+    ]
   }
 ]

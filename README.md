@@ -52,6 +52,9 @@ public class FooToBarMigration extends AbstractMigration {
 The following Java classes in `org.technologybrewery.baton.util` can be leveraged to easily implement common migration logic into your extension:
 * `CommonUtils`
 * `FileUtils`
+* `pom.PomHelper`
+* `pom.PomModifications`
+* `pom.LocationAwareMavenReader`
 
 ### Configure Baton to use the migration
 With a migration to apply, we both configure and tailor that use through a simple json file.  This file can live anywhere

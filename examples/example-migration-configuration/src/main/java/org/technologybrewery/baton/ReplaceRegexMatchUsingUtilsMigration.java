@@ -15,7 +15,7 @@ public class ReplaceRegexMatchUsingUtilsMigration extends AbstractMigration {
     protected boolean shouldExecuteOnFile(File file) {
         boolean shouldExecuteMigration = false;
         try {
-            logger.info("Detecting migrations for {} to {}", JAVA_FILE_REGEX, NEW_JAVA_FILE_NAME);
+            logger.info("Performing file migration `{}` on file `{}` using utilities", getName(), file.getAbsoluteFile());
             shouldExecuteMigration = FileUtils.hasRegExMatch(JAVA_FILE_REGEX, file);
         } catch (IOException e) {
             logger.error("Caught exception checking Java files for migration legibility");
