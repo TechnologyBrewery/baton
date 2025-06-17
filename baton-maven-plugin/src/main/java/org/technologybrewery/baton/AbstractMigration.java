@@ -123,7 +123,8 @@ public abstract class AbstractMigration implements Migration {
                 String originalPathAsString = Paths.get(originalFile.toURI()).toString();
                 String baseDirectoryFilePath = Paths.get(getBasedir().toURI()).toString();
                 String localPath = originalPathAsString.replace(baseDirectoryFilePath, "");
-                File backupFile = new File(persistentBackupPathBase, "baton/" + localPath + ".orig");
+                File backupFile = new File(persistentBackupPathBase, "baton/" + getMavenProject().getArtifactId()
+                        + "/" + localPath + ".orig");
                 FileUtils.createParentDirectories(backupFile);
 
                 createBackupAndRotateAnyPriorVersions(originalFile, backupFile);

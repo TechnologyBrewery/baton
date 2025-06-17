@@ -49,7 +49,7 @@ if [[ "$?" -ne 0 ]] ; then
 fi
 
 echo "/////////// Deploy Baton to Maven Central ///////////"
-mvn deploy -P ossrh-release -Dmaven.build.cache.enabled=false
+mvn deploy -P central-release -Dmaven.build.cache.enabled=false
 
 if [[ "$?" -ne 0 ]] ; then
   echo 'Process failed! Unable to deploy Baton to Maven Central!'; exit 1

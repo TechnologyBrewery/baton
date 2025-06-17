@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.technologybrewery</groupId>
         <artifactId>parent</artifactId>
-        <version>9</version>
+        <version>14</version>
     </parent>
 
     <groupId>org.technologybrewery.baton</groupId>
@@ -49,16 +49,6 @@
     <properties>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <extensions>true</extensions>
-            </plugin>
-        </plugins>
-    </build>
-
     <profiles>
         <profile>
             <id>default</id>
@@ -76,7 +66,7 @@
             </modules>
         </profile>
         <profile>
-            <id>ossrh-release</id>
+            <id>central-release</id>
             <modules>
                 <module>baton-maven-plugin</module>
             </modules>
