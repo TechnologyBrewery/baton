@@ -1,5 +1,7 @@
 package org.technologybrewery.baton;
 
+import org.apache.maven.model.Build;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 
 import java.io.File;
@@ -34,6 +36,16 @@ public class BackupFileTestMigration extends AbstractMigration {
     @Override
     protected String getBuildDir() {
         return "./target";
+    }
+
+    @Override
+    public MavenProject getMavenProject() {
+        MavenProject mockProject = new MavenProject();
+        mockProject.setArtifactId("baton-test");
+        Build build = new Build();
+        build.setDirectory("./target");
+        mockProject.setBuild(build);
+        return mockProject;
     }
 
     @Override
